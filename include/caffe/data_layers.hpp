@@ -7,8 +7,12 @@
 
 #include "boost/scoped_ptr.hpp"
 #include "hdf5.h"
+#ifdef USE_LEVELDB
 #include "leveldb/db.h"
+#endif
+#ifdef USE_LMDB
 #include "lmdb.h"
+#endif
 
 #include "caffe/blob.hpp"
 #include "caffe/common.hpp"
@@ -115,14 +119,19 @@ class DataLayer : public BasePrefetchingDataLayer<Dtype> {
   virtual void InternalThreadEntry();
 
   // LEVELDB
+#ifdef USE_LEVELDB
   shared_ptr<leveldb::DB> db_;
   shared_ptr<leveldb::Iterator> iter_;
+#endif
+
   // LMDB
+#ifdef USE_LMDB
   MDB_env* mdb_env_;
   MDB_dbi mdb_dbi_;
   MDB_txn* mdb_txn_;
   MDB_cursor* mdb_cursor_;
   MDB_val mdb_key_, mdb_value_;
+#endif
 };
 
 /**

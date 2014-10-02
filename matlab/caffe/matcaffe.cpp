@@ -274,7 +274,7 @@ static void init(MEX_ARGS) {
   mxFree(param_file);
   mxFree(model_file);
 
-  init_key = random();  // NOLINT(caffe/random_fn)
+  init_key = (int)caffe_rng_rand();  // NOLINT(caffe/random_fn)
 
   if (nlhs == 1) {
     plhs[0] = mxCreateDoubleScalar(init_key);

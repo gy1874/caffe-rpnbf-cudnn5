@@ -50,7 +50,7 @@ using boost::shared_ptr;
 // Common functions and classes from std that caffe often uses.
 using std::fstream;
 using std::ios;
-using std::isnan;
+//using std::isnan;
 using std::iterator;
 using std::make_pair;
 using std::map;

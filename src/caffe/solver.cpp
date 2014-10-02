@@ -11,6 +11,10 @@
 #include "caffe/util/math_functions.hpp"
 #include "caffe/util/upgrade_proto.hpp"
 
+#ifdef _MSC_VER
+# define snprintf _snprintf
+#endif
+
 namespace caffe {
 
 template <typename Dtype>

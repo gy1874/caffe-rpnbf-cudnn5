@@ -1,6 +1,7 @@
 #ifndef CAFFE_UTIL_MKL_ALTERNATE_H_
 #define CAFFE_UTIL_MKL_ALTERNATE_H_
 
+
 #ifdef USE_MKL
 
 #include <mkl.h>

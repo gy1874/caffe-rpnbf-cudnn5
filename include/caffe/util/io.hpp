@@ -1,8 +1,12 @@
 #ifndef CAFFE_UTIL_IO_H_
 #define CAFFE_UTIL_IO_H_
 
+#ifdef _MSC_VER
+#include <io.h>
+#include <direct.h>
+#else
 #include <unistd.h>
-#include <string>
+#endif
 
 #include "google/protobuf/message.h"
 #include "hdf5.h"
@@ -13,10 +17,13 @@
 
 #define HDF5_NUM_DIMS 4
 
+#ifdef USE_LEVELDB
 namespace leveldb {
 // Forward declaration for leveldb::Options to be used in GetlevelDBOptions().
 struct Options;
 }
+#endif
+
 
 namespace caffe {
 
@@ -28,24 +35,37 @@ inline void MakeTempFilename(string* temp_filename) {
   char* temp_filename_cstr = new char[temp_filename->size()];
   // NOLINT_NEXT_LINE(runtime/printf)
   strcpy(temp_filename_cstr, temp_filename->c_str());
+#ifdef _MSC_VER
+  int fd = _mktemp_s(temp_filename_cstr, temp_filename->length()+1);
+#else
   int fd = mkstemp(temp_filename_cstr);
+#endif
   CHECK_GE(fd, 0) << "Failed to open a temporary file at: " << *temp_filename;
+#ifdef _MSC_VER
+  _close(fd);
+#else
   close(fd);
+#endif
   *temp_filename = temp_filename_cstr;
   delete temp_filename_cstr;
 }
 
 inline void MakeTempDir(string* temp_dirname) {
-  temp_dirname->clear();
-  *temp_dirname = "/tmp/caffe_test.XXXXXX";
-  char* temp_dirname_cstr = new char[temp_dirname->size()];
-  // NOLINT_NEXT_LINE(runtime/printf)
-  strcpy(temp_dirname_cstr, temp_dirname->c_str());
-  char* mkdtemp_result = mkdtemp(temp_dirname_cstr);
-  CHECK(mkdtemp_result != NULL)
-      << "Failed to create a temporary directory at: " << *temp_dirname;
-  *temp_dirname = temp_dirname_cstr;
-  delete temp_dirname_cstr;
+	temp_dirname->clear();
+	*temp_dirname = "/tmp/caffe_test.XXXXXX";
+	char* temp_dirname_cstr = new char[temp_dirname->size()];
+	// NOLINT_NEXT_LINE(runtime/printf)
+	strcpy(temp_dirname_cstr, temp_dirname->c_str());
+#ifdef _MSC_VER
+	int mkdtemp_result = _mkdir(temp_dirname_cstr);
+	CHECK_NE(mkdtemp_result, 0) << "Failed to open a temporary directory at: " << *temp_dirname;
+#else
+	char* mkdtemp_result = mkdtemp(temp_dirname_cstr);
+	CHECK(mkdtemp_result != NULL)
+		<< "Failed to create a temporary directory at: " << *temp_dirname;
+#endif
+	*temp_dirname = temp_dirname_cstr;
+	delete temp_dirname_cstr;
 }
 
 bool ReadProtoFromTextFile(const char* filename, Message* proto);
@@ -102,7 +122,9 @@ inline bool ReadImageToDatum(const string& filename, const int label,
   return ReadImageToDatum(filename, label, 0, 0, datum);
 }
 
+#ifdef USE_LEVELDB
 leveldb::Options GetLevelDBOptions();
+#endif
 
 template <typename Dtype>
 void hdf5_load_nd_dataset_helper(
