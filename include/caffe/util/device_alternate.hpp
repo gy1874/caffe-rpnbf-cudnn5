@@ -81,18 +81,27 @@ namespace caffe {
 const char* cublasGetErrorString(cublasStatus_t error);
 const char* curandGetErrorString(curandStatus_t error);
 
-// CUDA: thread number configuration.
-// Use 1024 threads per block, which requires cuda sm_2x or above,
-// or fall back to attempt compatibility (best of luck to you).
-#if __CUDA_ARCH__ >= 200
-    const int CAFFE_CUDA_NUM_THREADS = 1024;
-#else
-    const int CAFFE_CUDA_NUM_THREADS = 512;
-#endif
+//// CUDA: thread number configuration.
+//// Use 1024 threads per block, which requires cuda sm_2x or above,
+//// or fall back to attempt compatibility (best of luck to you).
+//// not works on windows
+//#if __CUDA_ARCH__ >= 200
+//const int CAFFE_CUDA_NUM_THREADS = 1024;
+//#else
+//const int CAFFE_CUDA_NUM_THREADS = 512;
+//#endif
+
+extern int CAFFE_CUDA_NUM_THREADS;
 
 // CUDA: number of blocks for threads.
 inline int CAFFE_GET_BLOCKS(const int N) {
-  return (N + CAFFE_CUDA_NUM_THREADS - 1) / CAFFE_CUDA_NUM_THREADS;
+	if ( CAFFE_CUDA_NUM_THREADS == -1)
+	{
+		LOG(ERROR) << "UnInitliaized CAFFE_CUDA_NUM_THREADS";
+		printf("UnInitliaized CAFFE_CUDA_NUM_THREADS!\n");
+		throw std::runtime_error("UnInitliaized CAFFE_CUDA_NUM_THREADS");
+	}
+	return (N + CAFFE_CUDA_NUM_THREADS - 1) / CAFFE_CUDA_NUM_THREADS;
 }
 
 }  // namespace caffe

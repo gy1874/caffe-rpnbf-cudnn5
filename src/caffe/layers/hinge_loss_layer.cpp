@@ -57,10 +57,6 @@ void HingeLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
     int count = (*bottom)[0]->count();
     int dim = count / num;
 
-    for (int i = 0; i < num; ++i) {
-      bottom_diff[i * dim + static_cast<int>(label[i])] *= -1;
-    }
-
     const Dtype loss_weight = top[0]->cpu_diff()[0];
     switch (this->layer_param_.hinge_loss_param().norm()) {
     case HingeLossParameter_Norm_L1:
@@ -73,6 +69,10 @@ void HingeLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
     default:
       LOG(FATAL) << "Unknown Norm";
     }
+
+	for (int i = 0; i < num; ++i) {
+		bottom_diff[i * dim + static_cast<int>(label[i])] *= -1;
+	}
   }
 }
 

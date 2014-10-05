@@ -53,6 +53,16 @@ template <>
 void caffe_axpy<double>(const int N, const double alpha, const double* X,
     double* Y) { cblas_daxpy(N, alpha, X, 1, Y, 1); }
 
+template <>
+void caffe_axpy_step<float>(const int N, const float alpha, const float* X, const int incX,
+							float* Y, const int incY)
+{ cblas_saxpy(N, alpha, X, incX, Y, incY); }
+
+template <>
+void caffe_axpy_step<double>(const int N, const double alpha, const double* X, const int incX,
+							 double* Y, const int incY)
+{ cblas_daxpy(N, alpha, X, incX, Y, incY); }
+
 template <typename Dtype>
 void caffe_set(const int N, const Dtype alpha, Dtype* Y) {
   if (alpha == 0) {

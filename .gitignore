@@ -82,3 +82,4 @@ docs/dev
 
 # CMake generated files
 *.gen.cmake
+*.pdb

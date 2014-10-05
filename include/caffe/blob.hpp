@@ -20,9 +20,10 @@ class Blob {
  public:
   Blob()
        : data_(), diff_(), num_(0), channels_(0), height_(0), width_(0),
-       count_(0), capacity_(0) {}
-  explicit Blob(const int num, const int channels, const int height,
-    const int width);
+       count_(0), space_requirement_(0) {}
+  explicit Blob(const int num, const int channels, 
+				const int height, const int width);
+  explicit Blob(const Blob& memory_share_blob);
   /**
    * @brief Change the dimensions of the blob, allocating new memory if
    *        necessary.
@@ -134,9 +135,9 @@ class Blob {
   int height_;
   int width_;
   int count_;
-  int capacity_;
+  size_t space_requirement_;
 
-  DISABLE_COPY_AND_ASSIGN(Blob);
+  DISABLE_ASSIGN(Blob);
 };  // class Blob
 
 }  // namespace caffe

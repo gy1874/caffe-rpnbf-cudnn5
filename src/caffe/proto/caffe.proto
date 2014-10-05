@@ -63,7 +63,7 @@ message NetParameter {
 // NOTE
 // Update the next available ID when you add a new SolverParameter field.
 //
-// SolverParameter next available ID: 33 (last added: test_initialization)
+// SolverParameter next available ID: 35 (last added: vstep_size)
 message SolverParameter {
   //////////////////////////////////////////////////////////////////////////////
   // Specifying the train and test networks
@@ -157,6 +157,9 @@ message SolverParameter {
 
   // If false, don't save a snapshot after training finishes.
   optional bool snapshot_after_train = 28 [default = true];
+  
+  repeated float vstep_lr = 33; // lr for "vstep"
+  repeated int32 vstep_size = 34; // step size for "vstep" 
 }
 
 // A message that stores the solver snapshots
@@ -433,6 +436,7 @@ message DataParameter {
 // Message that stores parameters used by DropoutLayer
 message DropoutParameter {
   optional float dropout_ratio = 1 [default = 0.5]; // dropout ratio
+  optional bool scale_train = 2 [default = false];  // scale train or test phase
 }
 
 // Message that stores parameters used by DummyDataLayer.

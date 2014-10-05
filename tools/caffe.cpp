@@ -6,6 +6,8 @@
 #include <vector>
 
 #include "caffe/caffe.hpp"
+#include "caffe/util/path.h"
+#include "caffe/util/directory.h"
 
 using caffe::Blob;
 using caffe::Caffe;
@@ -27,6 +29,8 @@ DEFINE_string(snapshot, "",
 DEFINE_string(weights, "",
     "Optional; the pretrained weights to initialize finetuning. "
     "Cannot be set simultaneously with snapshot.");
+DEFINE_string(logfile, ".\\log\\",
+			  "Optional; log file. ");
 DEFINE_int32(iterations, 50,
     "The number of iterations to run.");
 
@@ -83,7 +87,7 @@ int train() {
   CHECK(!FLAGS_snapshot.size() || !FLAGS_weights.size())
       << "Give a snapshot to resume training or weights to finetune "
       "but not both.";
-
+   
   caffe::SolverParameter solver_param;
   caffe::ReadProtoFromTextFileOrDie(FLAGS_solver, &solver_param);
 
@@ -279,6 +283,10 @@ int main(int argc, char** argv) {
       "  time            benchmark model execution time");
   // Run tool or show usage.
   caffe::GlobalInit(&argc, &argv);
+  string dir_path = CPath::GetDirectoryName(FLAGS_logfile);
+  if (!CDirectory::Exist(dir_path.c_str()))
+	  CDirectory::CreateDirectory(dir_path.c_str());
+  ::google::SetLogDestination(0, FLAGS_logfile.c_str());
   if (argc == 2) {
     return GetBrewFunction(caffe::string(argv[1]))();
   } else {

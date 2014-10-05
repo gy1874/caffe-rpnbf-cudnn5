@@ -282,47 +282,6 @@ class ImageDataLayer : public BasePrefetchingDataLayer<Dtype> {
 };
 
 /**
- * @brief Provides data to the Net from memory.
- *
- * TODO(dox): thorough documentation for Forward and proto params.
- */
-template <typename Dtype>
-class MemoryDataLayer : public BaseDataLayer<Dtype> {
- public:
-  explicit MemoryDataLayer(const LayerParameter& param)
-      : BaseDataLayer<Dtype>(param), has_new_data_(false) {}
-  virtual void DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
-      vector<Blob<Dtype>*>* top);
-
-  virtual inline LayerParameter_LayerType type() const {
-    return LayerParameter_LayerType_MEMORY_DATA;
-  }
-  virtual inline int ExactNumBottomBlobs() const { return 0; }
-  virtual inline int ExactNumTopBlobs() const { return 2; }
-
-  virtual void AddDatumVector(const vector<Datum>& datum_vector);
-
-  // Reset should accept const pointers, but can't, because the memory
-  //  will be given to Blob, which is mutable
-  void Reset(Dtype* data, Dtype* label, int n);
-
-  int batch_size() { return batch_size_; }
-
- protected:
-  virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-      vector<Blob<Dtype>*>* top);
-
-  int batch_size_;
-  Dtype* data_;
-  Dtype* labels_;
-  int n_;
-  int pos_;
-  Blob<Dtype> added_data_;
-  Blob<Dtype> added_label_;
-  bool has_new_data_;
-};
-
-/**
  * @brief Provides data to the Net from windows of images files, specified
  *        by a window data file.
  *

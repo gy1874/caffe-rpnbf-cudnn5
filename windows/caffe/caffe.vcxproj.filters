@@ -144,9 +144,6 @@
     <ClCompile Include="..\..\src\caffe\layers\lrn_layer.cpp">
       <Filter>src\layers\common_layers</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\caffe\layers\memory_data_layer.cpp">
-      <Filter>src\layers\data_layers</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\caffe\layers\multinomial_logistic_loss_layer.cpp">
       <Filter>src\layers\loss_layers</Filter>
     </ClCompile>

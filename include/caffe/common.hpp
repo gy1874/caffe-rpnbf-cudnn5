@@ -32,6 +32,11 @@ private:\
   classname(const classname&);\
   classname& operator=(const classname&)
 
+// Disable just the assignment operator for a class.
+#define DISABLE_ASSIGN(classname) \
+private:\
+	classname& operator=(const classname&)
+
 // Instantiate a class with float and double specifications.
 #define INSTANTIATE_CLASS(classname) \
   template class classname<float>; \
@@ -78,6 +83,7 @@ class Caffe {
   }
   enum Brew { CPU, GPU };
   enum Phase { TRAIN, TEST };
+  enum GPU_Mode { GPU_AVAILABLE, GPU_FORBID };
 
 
   // This random number generator facade hides boost and CUDA rng
@@ -112,6 +118,8 @@ class Caffe {
   inline static Brew mode() { return Get().mode_; }
   // Returns the phase: TRAIN or TEST.
   inline static Phase phase() { return Get().phase_; }
+  // Returns the GPU_Mode: AVAILABLE or FORBID. Indicate whether gpu and gpu_memory can increase for online switch
+  inline static GPU_Mode gpu_mode() { return Get().gpu_mode_; }
   // The setters for the variables
   // Sets the mode. It is recommended that you don't change the mode halfway
   // into the program since that may cause allocation of pinned memory being
@@ -120,6 +128,8 @@ class Caffe {
   inline static void set_mode(Brew mode) { Get().mode_ = mode; }
   // Sets the phase.
   inline static void set_phase(Phase phase) { Get().phase_ = phase; }
+  // Sets the gpu_mode.
+  inline static void set_gpu_mode(GPU_Mode gpu_mode) { Get().gpu_mode_ = gpu_mode; }
   // Sets the random seed of both boost and curand
   static void set_random_seed(const unsigned int seed);
   // Sets the device. Since we have cublas and curand stuff, set device also
@@ -127,6 +137,12 @@ class Caffe {
   static void SetDevice(const int device_id);
   // Prints the current GPU status.
   static void DeviceQuery();
+  // Get device prop
+  static bool GetDeviceProp(cudaDeviceProp &prop);
+
+
+protected:
+	static void AutoSetCudaNumThreads();
 
  protected:
 #ifndef CPU_ONLY
@@ -137,6 +153,7 @@ class Caffe {
 
   Brew mode_;
   Phase phase_;
+  GPU_Mode gpu_mode_;
   static shared_ptr<Caffe> singleton_;
 
  private:

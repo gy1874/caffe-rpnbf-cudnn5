@@ -12,6 +12,8 @@ namespace caffe {
 
 shared_ptr<Caffe> Caffe::singleton_;
 
+int CAFFE_CUDA_NUM_THREADS = -1;
+
 // random seeding
 int64_t cluster_seedgen(void) {
   int64_t s, seed, pid;
@@ -47,7 +49,7 @@ void GlobalInit(int* pargc, char*** pargv) {
 #ifdef CPU_ONLY  // CPU-only Caffe.
 
 Caffe::Caffe()
-    : random_generator_(), mode_(Caffe::CPU), phase_(Caffe::TRAIN) { }
+    : random_generator_(), mode_(Caffe::CPU), phase_(Caffe::TRAIN), gpu_mode_(Caffe::GPU_FORBID) { }
 
 Caffe::~Caffe() { }
 
@@ -91,7 +93,7 @@ void* Caffe::RNG::generator() {
 
 Caffe::Caffe()
     : cublas_handle_(NULL), curand_generator_(NULL), random_generator_(),
-    mode_(Caffe::CPU), phase_(Caffe::TRAIN) {
+    mode_(Caffe::CPU), phase_(Caffe::TRAIN), gpu_mode_(GPU_Mode::GPU_AVAILABLE) {
   // Try to create a cublas handler, and report an error if failed (but we will
   // keep the program running as one might just want to run CPU code).
   if (cublasCreate(&cublas_handle_) != CUBLAS_STATUS_SUCCESS) {
@@ -104,6 +106,9 @@ Caffe::Caffe()
       != CURAND_STATUS_SUCCESS) {
     LOG(ERROR) << "Cannot create Curand generator. Curand won't be available.";
   }
+
+  // set CAFFE_CUDA_NUM_THREADS
+  AutoSetCudaNumThreads();
 }
 
 Caffe::~Caffe() {
@@ -149,6 +154,20 @@ void Caffe::SetDevice(const int device_id) {
       CURAND_RNG_PSEUDO_DEFAULT));
   CURAND_CHECK(curandSetPseudoRandomGeneratorSeed(Get().curand_generator_,
       cluster_seedgen()));
+
+  // set CAFFE_CUDA_NUM_THREADS
+  AutoSetCudaNumThreads();
+}
+
+bool Caffe::GetDeviceProp(cudaDeviceProp &prop)
+{
+	int device;
+	if (cudaSuccess != cudaGetDevice(&device)) {
+		printf("No cuda device present.\n");
+		return false;
+	}
+	CUDA_CHECK(cudaGetDeviceProperties(&prop, device));
+	return true;
 }
 
 void Caffe::DeviceQuery() {
@@ -184,6 +203,23 @@ void Caffe::DeviceQuery() {
   LOG(INFO) << "Kernel execution timeout:      "
       << (prop.kernelExecTimeoutEnabled ? "Yes" : "No");
   return;
+}
+
+void Caffe::AutoSetCudaNumThreads()
+{
+	int device;
+	cudaDeviceProp prop;
+	if (cudaSuccess != cudaGetDevice(&device)) {
+		printf("No cuda device present.\n");
+		return;
+	}
+	CUDA_CHECK(cudaGetDeviceProperties(&prop, device));
+	if ( prop.major >= 2 )
+		CAFFE_CUDA_NUM_THREADS = 1024;
+	else
+		CAFFE_CUDA_NUM_THREADS = 512;
+
+	LOG(INFO) << "Compute Capability " << prop.major << "." << prop.minor << ", set cuda_num_threads = " << CAFFE_CUDA_NUM_THREADS;
 }
 
 

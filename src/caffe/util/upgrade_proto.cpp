@@ -139,7 +139,7 @@ bool UpgradeLayerParameter(const LayerParameter& v0_layer_connection,
       if (type == "conv") {
         layer_param->mutable_convolution_param()->set_num_output(
             v0_layer_param.num_output());
-      } else if (type == "innerproduct") {
+      } else if (type == "innerproduct" || type == "inner_product") {
         layer_param->mutable_inner_product_param()->set_num_output(
             v0_layer_param.num_output());
       } else {
@@ -151,7 +151,7 @@ bool UpgradeLayerParameter(const LayerParameter& v0_layer_connection,
       if (type == "conv") {
         layer_param->mutable_convolution_param()->set_bias_term(
             v0_layer_param.biasterm());
-      } else if (type == "innerproduct") {
+      } else if (type == "innerproduct" || type == "inner_product") {
         layer_param->mutable_inner_product_param()->set_bias_term(
             v0_layer_param.biasterm());
       } else {
@@ -163,7 +163,7 @@ bool UpgradeLayerParameter(const LayerParameter& v0_layer_connection,
       if (type == "conv") {
         layer_param->mutable_convolution_param()->
             mutable_weight_filler()->CopyFrom(v0_layer_param.weight_filler());
-      } else if (type == "innerproduct") {
+      } else if (type == "innerproduct" || type == "inner_product") {
         layer_param->mutable_inner_product_param()->
             mutable_weight_filler()->CopyFrom(v0_layer_param.weight_filler());
       } else {
@@ -175,7 +175,7 @@ bool UpgradeLayerParameter(const LayerParameter& v0_layer_connection,
       if (type == "conv") {
         layer_param->mutable_convolution_param()->
             mutable_bias_filler()->CopyFrom(v0_layer_param.bias_filler());
-      } else if (type == "innerproduct") {
+      } else if (type == "innerproduct" || type == "inner_product") {
         layer_param->mutable_inner_product_param()->
             mutable_bias_filler()->CopyFrom(v0_layer_param.bias_filler());
       } else {
@@ -480,6 +480,8 @@ LayerParameter_LayerType UpgradeV0LayerType(const string& type) {
     return LayerParameter_LayerType_INFOGAIN_LOSS;
   } else if (type == "innerproduct") {
     return LayerParameter_LayerType_INNER_PRODUCT;
+  } else if (type == "inner_product") {
+	  return LayerParameter_LayerType_INNER_PRODUCT;
   } else if (type == "lrn") {
     return LayerParameter_LayerType_LRN;
   } else if (type == "multinomial_logistic_loss") {
@@ -500,6 +502,8 @@ LayerParameter_LayerType UpgradeV0LayerType(const string& type) {
     return LayerParameter_LayerType_TANH;
   } else if (type == "window_data") {
     return LayerParameter_LayerType_WINDOW_DATA;
+  } else if (type == "data_bigfile") {
+	  return LayerParameter_LayerType_NONE;
   } else {
     LOG(FATAL) << "Unknown layer name: " << type;
     return LayerParameter_LayerType_NONE;

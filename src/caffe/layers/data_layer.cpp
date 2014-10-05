@@ -20,6 +20,7 @@ template <typename Dtype>
 DataLayer<Dtype>::~DataLayer<Dtype>() {
   this->JoinPrefetchThread();
   // clean up the database resources
+#if defined(USE_LEVELDB) || defined(USE_LMDB)
   switch (this->layer_param_.data_param().backend()) {
 #ifdef USE_LEVELDB
   case DataParameter_DB_LEVELDB:
@@ -34,14 +35,16 @@ DataLayer<Dtype>::~DataLayer<Dtype>() {
     break;
 #endif
   default:
-    LOG(FATAL) << "Unknown database backend";
+    LOG(FATAL) << "Unknown database backend"; 
   }
+#endif
 }
 
 template <typename Dtype>
 void DataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
       vector<Blob<Dtype>*>* top) {
   // Initialize DB
+#if defined(USE_LEVELDB) || defined(USE_LMDB)
   switch (this->layer_param_.data_param().backend()) {
 #ifdef USE_LEVELDB
   case DataParameter_DB_LEVELDB:
@@ -82,6 +85,7 @@ void DataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
   default:
     LOG(FATAL) << "Unknown database backend";
   }
+#endif
 
   // Check if we would need to randomly skip a few data points
   if (this->layer_param_.data_param().rand_skip()) {
@@ -89,6 +93,7 @@ void DataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
                         this->layer_param_.data_param().rand_skip();
     LOG(INFO) << "Skipping first " << skip << " data points.";
     while (skip-- > 0) {
+#if defined(USE_LEVELDB) || defined(USE_LMDB)
       switch (this->layer_param_.data_param().backend()) {
 #ifdef USE_LEVELDB
       case DataParameter_DB_LEVELDB:
@@ -110,10 +115,12 @@ void DataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
       default:
         LOG(FATAL) << "Unknown database backend";
       }
+#endif
     }
   }
   // Read a data point, and use it to initialize the top blob.
   Datum datum;
+#if defined(USE_LEVELDB) || defined(USE_LMDB)
   switch (this->layer_param_.data_param().backend()) {
 #ifdef USE_LEVELDB
   case DataParameter_DB_LEVELDB:
@@ -128,6 +135,7 @@ void DataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
   default:
     LOG(FATAL) << "Unknown database backend";
   }
+#endif
 
   // image
   int crop_size = this->layer_param_.transform_param().crop_size();
@@ -173,6 +181,7 @@ void DataLayer<Dtype>::InternalThreadEntry() {
 
   for (int item_id = 0; item_id < batch_size; ++item_id) {
     // get a blob
+#if defined(USE_LEVELDB) || defined(USE_LMDB)
     switch (this->layer_param_.data_param().backend()) {
 #ifdef USE_LEVELDB
     case DataParameter_DB_LEVELDB:
@@ -192,6 +201,7 @@ void DataLayer<Dtype>::InternalThreadEntry() {
     default:
       LOG(FATAL) << "Unknown database backend";
     }
+#endif
 
     // Apply data transformations (mirror, scale, crop...)
     this->data_transformer_.Transform(item_id, datum, this->mean_, top_data);
@@ -201,6 +211,7 @@ void DataLayer<Dtype>::InternalThreadEntry() {
     }
 
     // go to the next iter
+#if defined(USE_LEVELDB) || defined(USE_LMDB)
     switch (this->layer_param_.data_param().backend()) {
 #ifdef USE_LEVELDB
     case DataParameter_DB_LEVELDB:
@@ -226,6 +237,7 @@ void DataLayer<Dtype>::InternalThreadEntry() {
     default:
       LOG(FATAL) << "Unknown database backend";
     }
+#endif
   }
 }
 

@@ -19,13 +19,13 @@ namespace caffe {
 
 template <typename Dtype>
 Solver<Dtype>::Solver(const SolverParameter& param)
-    : net_() {
+    : net_(), iter_(0) {
   Init(param);
 }
 
 template <typename Dtype>
 Solver<Dtype>::Solver(const string& param_file)
-    : net_() {
+    : net_(), iter_(0) {
   SolverParameter param;
   ReadProtoFromTextFile(param_file, &param);
   Init(param);
@@ -154,7 +154,7 @@ void Solver<Dtype>::InitTestNets() {
     net_params[i].mutable_state()->CopyFrom(net_state);
     LOG(INFO)
         << "Creating test net (#" << i << ") specified by " << sources[i];
-    test_nets_[i].reset(new Net<Dtype>(net_params[i]));
+    test_nets_[i].reset(new Net<Dtype>(net_params[i], net_.get()));
   }
 }
 
@@ -237,6 +237,50 @@ void Solver<Dtype>::Solve(const char* resume_file) {
   LOG(INFO) << "Optimization Done.";
 }
 
+template <typename Dtype>
+void Solver<Dtype>::SolveOneIterationPrefilled(Dtype &error, Dtype &loss) {
+
+	static Dtype accuracy_train_sum = Dtype(0);
+	static Dtype accuracy_train = Dtype(0);
+	static int accuracy_train_count = 0;
+
+	iter_++;
+
+	CHECK_EQ(Caffe::phase(), Caffe::TRAIN) << "SolveOneIteration only support Train phase";
+
+	clock_t clk_start_iter = clock();
+
+	vector<Blob<Dtype>*> bottom_vec;
+	loss = net_->ForwardBackward(bottom_vec);
+	const vector<Blob<Dtype>*>& result = net_->output_blobs();
+
+	for (int i = 0; i < result.size(); ++i) {
+		const string& output_name =
+			net_->blob_names()[net_->output_blob_indices()[i]];
+		if (output_name != "accuracy")
+			continue;
+		error = 1 - result[i]->cpu_data()[0];
+		accuracy_train_sum += 1 - error;
+		accuracy_train_count ++;
+		accuracy_train = accuracy_train_count == 0 ? Dtype(0) : accuracy_train_sum / accuracy_train_count;
+	}
+
+	ComputeUpdateValue();
+	net_->Update();
+
+	if (param_.display() && iter_ % param_.display() == 0) {
+		LOG(INFO) << "Iteration " << iter_ << ", error = " << 1 - accuracy_train << ", loss = " << loss << ", time = " << (float)(clock() - clk_start_iter) / 1000 << "s";
+		accuracy_train_sum = Dtype(0);
+		accuracy_train_count = 0;
+	}
+
+	// Check if we need to do snapshot 
+	if (param_.snapshot() && iter_ % param_.snapshot() == 0) {
+		Snapshot();
+	}
+}
+
+
 
 template <typename Dtype>
 void Solver<Dtype>::TestAll() {
@@ -307,17 +351,22 @@ void Solver<Dtype>::Test(const int test_net_id) {
 
 
 template <typename Dtype>
-void Solver<Dtype>::Snapshot() {
+void Solver<Dtype>::Snapshot(string prefix/* = ""*/, string filename/* = ""*/) {
   NetParameter net_param;
   // For intermediate results, we will also dump the gradient values.
   net_->ToProto(&net_param, param_.snapshot_diff());
-  string filename(param_.snapshot_prefix());
+  if (filename.empty()){
+	  filename = param_.snapshot_prefix();
+	  const int kBufferSize = 20;
+	  char iter_str_buffer[kBufferSize];
+	  sprintf_s(iter_str_buffer, kBufferSize, "_iter_%d", iter_);
+	  if (prefix.empty())
+		  filename += iter_str_buffer;
+	  else
+		  filename += prefix;
+  }
   string model_filename, snapshot_filename;
-  const int kBufferSize = 20;
-  char iter_str_buffer[kBufferSize];
-  snprintf(iter_str_buffer, kBufferSize, "_iter_%d", iter_);
-  filename += iter_str_buffer;
-  model_filename = filename + ".caffemodel";
+  model_filename = filename;
   LOG(INFO) << "Snapshotting to " << model_filename;
   WriteProtoToBinaryFile(net_param, model_filename.c_str());
   SolverState state;
@@ -367,6 +416,17 @@ Dtype SGDSolver<Dtype>::GetLearningRate() {
     rate = this->param_.base_lr() *
         pow(Dtype(1) + this->param_.gamma() * this->iter_,
             - this->param_.power());
+  } else if (lr_policy == "vstep"){
+	  CHECK_EQ(this->param_.vstep_size_size(), this->param_.vstep_lr_size());
+	  int step_iter = this->iter_;
+	  rate = this->param_.vstep_lr(this->param_.vstep_lr_size() - 1);
+	  for (int i = 0; i < this->param_.vstep_lr_size(); ++i) {
+		  step_iter -= this->param_.vstep_size(i);
+		  if (step_iter <= 0) {
+			  rate = this->param_.vstep_lr(i);
+			  break;
+		  }
+	  }
   } else {
     LOG(FATAL) << "Unknown learning rate policy: " << lr_policy;
   }
