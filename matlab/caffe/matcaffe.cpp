@@ -49,7 +49,7 @@ static vector<int> init_key;
 
 static mxArray* do_forward(const mxArray* const bottom, int model_idx) {
 	vector<Blob<float>*>& input_blobs = net_[model_idx]->input_blobs();
-	CHECK_EQ(static_cast<unsigned int>(mxGetDimensions(bottom)[0]),
+	CHECK_EQ(static_cast<unsigned int>(mxGetNumberOfElements(bottom)),
 		input_blobs.size());
 	for (unsigned int i = 0; i < input_blobs.size(); ++i) {
 		const mxArray* const elem = mxGetCell(bottom, i);
@@ -249,7 +249,8 @@ void set_input_size(MEX_ARGS){
 	if (net_[model_idx]->bottom_vecs().size() <= 0)
 		mexErrMsgTxt("caffe_mex : set_input_size :: first layer has no input.\n");
 
-	net_[model_idx]->bottom_vecs()[0][0]->Reshape(num, channel, height, width);
+	for (int i = 0; i < net_[model_idx]->input_blobs().size(); ++ i)
+			net_[model_idx]->input_blobs()[i]->Reshape(num, channel, height, width);
 	for (int i = 0; i < net_[model_idx]->layers().size(); ++i)
 		net_[model_idx]->layers()[i]->Reshape(net_[model_idx]->bottom_vecs()[i], &net_[model_idx]->top_vecs()[i]);
 }
