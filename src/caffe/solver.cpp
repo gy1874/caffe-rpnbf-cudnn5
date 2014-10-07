@@ -359,7 +359,7 @@ void Solver<Dtype>::Snapshot(string prefix/* = ""*/, string filename/* = ""*/) {
 	  filename = param_.snapshot_prefix();
 	  const int kBufferSize = 20;
 	  char iter_str_buffer[kBufferSize];
-	  sprintf_s(iter_str_buffer, kBufferSize, "_iter_%d", iter_);
+	  snprintf(iter_str_buffer, kBufferSize, "_iter_%d", iter_);
 	  if (prefix.empty())
 		  filename += iter_str_buffer;
 	  else

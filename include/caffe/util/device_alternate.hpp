@@ -97,9 +97,7 @@ extern int CAFFE_CUDA_NUM_THREADS;
 inline int CAFFE_GET_BLOCKS(const int N) {
 	if ( CAFFE_CUDA_NUM_THREADS == -1)
 	{
-		LOG(ERROR) << "UnInitliaized CAFFE_CUDA_NUM_THREADS";
-		printf("UnInitliaized CAFFE_CUDA_NUM_THREADS!\n");
-		throw std::runtime_error("UnInitliaized CAFFE_CUDA_NUM_THREADS");
+		LOG(FATAL) << "UnInitliaized CAFFE_CUDA_NUM_THREADS";
 	}
 	return (N + CAFFE_CUDA_NUM_THREADS - 1) / CAFFE_CUDA_NUM_THREADS;
 }
