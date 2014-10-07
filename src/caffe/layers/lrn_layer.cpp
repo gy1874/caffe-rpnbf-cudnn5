@@ -115,12 +115,12 @@ namespace caffe {
 
 				for (int h = 0; h < height_; h++)
 				{
-					int lh = max(h - half_window, 0);
-					int hh = min(h - half_window + size_, height_);
+					int lh = std::max(h - half_window, 0);
+					int hh = std::min(h - half_window + size_, height_);
 					for (int w = 0; w < width_; w++)
 					{
-						int lw = max(w - half_window, 0);
-						int hw = min(w - half_window + size_, width_);
+						int lw = std::max(w - half_window, 0);
+						int hw = std::min(w - half_window + size_, width_);
 						for (int dh = lh; dh < hh; dh++)
 						{
 							for (int dw = lw; dw < hw; dw++)
@@ -250,12 +250,12 @@ namespace caffe {
 
 					for (int h = 0; h < height_; h++)
 					{
-						int lh = max(h - half_window, 0);
-						int hh = min(h - half_window + size_, height_);
+						int lh = std::max(h - half_window, 0);
+						int hh = std::min(h - half_window + size_, height_);
 						for (int w = 0; w < width_; w++)
 						{
-							int lw = max(w - half_window, 0);
-							int hw = min(w - half_window + size_, width_);
+							int lw = std::max(w - half_window, 0);
+							int hw = std::min(w - half_window + size_, width_);
 
 							memset(accum_ratio_data, 0, sizeof(Dtype) * accum_ratio.count());
 

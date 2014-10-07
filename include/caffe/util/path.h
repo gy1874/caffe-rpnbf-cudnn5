@@ -8,8 +8,14 @@ using std::string;
 
 class CPath
 {
+#ifdef WIN32
 #ifndef MAX_PATH
 #define MAX_PATH _MAX_PATH
+#endif
+#else
+#ifndef MAX_PATH
+#define MAX_PATH 2048
+#endif
 #endif
 
 public:

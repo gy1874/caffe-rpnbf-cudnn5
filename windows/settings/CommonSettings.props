@@ -8,7 +8,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <PreprocessorDefinitions>USE_LEVELDB;_CRT_SECURE_NO_WARNINGS;_VARIADIC_MAX=10;USE_MKL;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_LEVELDB;WIN32;_CRT_SECURE_NO_WARNINGS;_VARIADIC_MAX=10;USE_MKL;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalDependencies />
