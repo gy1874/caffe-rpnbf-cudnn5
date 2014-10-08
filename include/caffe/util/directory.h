@@ -28,13 +28,15 @@ class CDirectory
 {
 public:
 
-#ifdef WIN32
+
 	static bool Exist(const char *strPath)
 	{
+#ifdef WIN32
 		return (_access(strPath, 0) == 0);
-	}
+#else
+		return (access(strPath, F_OK) != -1);
 #endif // WIN32
-
+	}
 
 	static bool CreateDirectory(const char *strPath)
 	{

@@ -498,7 +498,7 @@ static void recovery_solver(MEX_ARGS) {
 	if (nrhs >= 3){
 		::google::InitGoogleLogging("caffe_mex");
 		char* log_file = mxArrayToString(prhs[2]);
-#ifdef _MSC_VER
+#ifdef WIN32
 		int mkd_result = _mkdir(log_file);
 		CHECK_NE(mkd_result, 0) << "Failed to open a temporary directory at: " << log_file;
 #else
