@@ -30,8 +30,10 @@ public:
 		sprintf_s(pOutput, MAX_PATH, "%s%s", pDrive, pDir);
 		return string(pOutput);
 #else
-		char *bname;
-		bname = basename(strPath);
+		const char *bname;
+		char pPath[MAX_PATH];
+		sprintf(pPath, "%s", strPath.c_str());
+		bname = basename(pPath);
 		return string(bname);
 #endif // WIN32
 	}

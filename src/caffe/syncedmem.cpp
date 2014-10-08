@@ -25,19 +25,21 @@ namespace caffe {
 			head_ = HEAD_AT_CPU;
 			break;
 		case HEAD_AT_GPU:
-#ifndef CPU_ONLY
+#ifndef CPU_ONLY 
 			switch(Caffe::gpu_mode())
 			{
 			case Caffe::GPU_AVAILABLE:
 				gpu_resize();
 				cpu_resize();
-				CUDA_CHECK(cudaMemcpy(cpu_data_, gpu_data_, size_, cudaMemcpyDeviceToHost));
+				caffe_gpu_memcpy(size_, gpu_data_, cpu_data_);
+				//CUDA_CHECK(cudaMemcpy(cpu_data_, gpu_data_, size_, cudaMemcpyDeviceToHost));
 				head_ = SYNCED;
 				break;
 
 			case Caffe::GPU_FORBID:
 				cpu_resize();
-				CUDA_CHECK(cudaMemcpy(cpu_data_, gpu_data_, std::min(size_, gpu_capacity_), cudaMemcpyDeviceToHost));
+				caffe_gpu_memcpy(std::min(size_, gpu_capacity_), gpu_data_, cpu_data_);
+				//CUDA_CHECK(cudaMemcpy(cpu_data_, gpu_data_, std::min(size_, gpu_capacity_), cudaMemcpyDeviceToHost));
 				head_ = HEAD_AT_CPU;
 				break;
 
@@ -72,7 +74,8 @@ namespace caffe {
 		case HEAD_AT_CPU:
 			cpu_resize();
 			gpu_resize();
-			CUDA_CHECK(cudaMemcpy(gpu_data_, cpu_data_, size_, cudaMemcpyHostToDevice));
+			caffe_gpu_memcpy(size_, cpu_data_, gpu_data_);
+			//CUDA_CHECK(cudaMemcpy(gpu_data_, cpu_data_, size_, cudaMemcpyHostToDevice));
 			head_ = SYNCED;
 			break;
 		case HEAD_AT_GPU:
@@ -151,8 +154,9 @@ namespace caffe {
 		} else if (size_ > gpu_capacity_) {
 			void* new_gpu_data;
 			CUDA_CHECK(cudaMalloc(&new_gpu_data, size_));
-			CUDA_CHECK(cudaMemcpy(new_gpu_data, gpu_data_, gpu_capacity_,
-				cudaMemcpyDeviceToDevice));
+			caffe_gpu_memcpy(gpu_capacity_, gpu_data_, new_gpu_data);
+			//CUDA_CHECK(cudaMemcpy(new_gpu_data, gpu_data_, gpu_capacity_,
+			//	cudaMemcpyDeviceToDevice));
 			CUDA_CHECK(cudaFree(gpu_data_));
 			gpu_data_ = new_gpu_data;
 		} else {
@@ -161,8 +165,9 @@ namespace caffe {
 		size_t num_new_bytes = size_ - gpu_capacity_;
 		// Zero-fill memory starting from offset gpu_capacity_ (i.e., don't overwrite
 		// current data).
-		CUDA_CHECK(cudaMemset(
-			static_cast<uint8_t*>(gpu_data_) + gpu_capacity_, 0, num_new_bytes));
+		caffe_gpu_memset(num_new_bytes, 0, static_cast<uint8_t*>(gpu_data_) + gpu_capacity_);
+		//CUDA_CHECK(cudaMemset(
+		//	static_cast<uint8_t*>(gpu_data_) + gpu_capacity_, 0, num_new_bytes));
 		gpu_capacity_ = size_;
 		return num_new_bytes;
 	}

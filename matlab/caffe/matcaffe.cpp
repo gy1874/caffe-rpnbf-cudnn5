@@ -246,7 +246,7 @@ void set_input_size(MEX_ARGS){
 	if (net_[model_idx]->layers().size() <= 0)
 		mexErrMsgTxt("caffe_mex : set_input_size :: no layer loaded.\n");
 
-	if (net_[model_idx]->bottom_vecs().size() <= 0)
+	if (net_[model_idx]->input_blobs().size() <= 0)
 		mexErrMsgTxt("caffe_mex : set_input_size :: first layer has no input.\n");
 
 	for (int i = 0; i < net_[model_idx]->input_blobs().size(); ++ i)
