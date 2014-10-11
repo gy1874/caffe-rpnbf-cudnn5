@@ -718,7 +718,7 @@ static void do_set_weights(shared_ptr<Net<float> > net, const mxArray* mx_layers
 			for (unsigned int k = 0; k < layer_blobs.size(); ++k) {
 				bool setted = false;
 				mxArray *mx_weights = mxGetCell(mx_weights_cell, k);
-				const size_t* input_blob_dims = mxGetDimensions(mx_weights);
+				const mwSize* input_blob_dims = mxGetDimensions(mx_weights);
 				int dim_num = mxGetNumberOfDimensions(mx_weights);
 				size_t input_dims[4] = {1, 1, 1, 1};
 				for (int idim = 0; idim < dim_num; ++idim)
